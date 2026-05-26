@@ -263,7 +263,10 @@ def train_arima(
 def train_prophet(
     df: pd.DataFrame, date_col: str, target_col: str, forecast_horizon: int = 30
 ) -> Dict[str, Any]:
-    from prophet import Prophet
+    try:
+        from prophet import Prophet
+    except ImportError:
+        raise ValueError("Prophet is not installed in this environment. Use Linear Regression, XGBoost, or ARIMA instead.")
 
     ts = aggregate_time_series(df.copy(), date_col, target_col, freq="D")
     # aggregate_time_series already returns 'ds' and 'y' columns

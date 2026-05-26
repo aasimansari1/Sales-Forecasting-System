@@ -1,8 +1,11 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
+from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
 import os
+
+FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend_dist")
 
 from app.config import settings
 from app.database import create_tables
@@ -61,10 +64,19 @@ async def health():
     return {"status": "ok", "service": "Sales Forecasting API"}
 
 
-@app.get("/")
-async def root():
-    return {
-        "message": "Sales Forecasting API",
-        "docs": "/docs",
-        "health": "/health",
-    }
+# Serve built React SPA (production)
+if os.path.isdir(FRONTEND_DIR):
+    _assets_dir = os.path.join(FRONTEND_DIR, "assets")
+    if os.path.isdir(_assets_dir):
+        app.mount("/assets", StaticFiles(directory=_assets_dir), name="static-assets")
+
+    @app.get("/{full_path:path}", include_in_schema=False)
+    async def serve_spa(full_path: str):
+        candidate = os.path.join(FRONTEND_DIR, full_path)
+        if full_path and os.path.isfile(candidate):
+            return FileResponse(candidate)
+        return FileResponse(os.path.join(FRONTEND_DIR, "index.html"))
+else:
+    @app.get("/")
+    async def root():
+        return {"message": "Sales Forecasting API", "docs": "/docs", "health": "/health"}

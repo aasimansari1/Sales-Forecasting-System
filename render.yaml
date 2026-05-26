@@ -1,0 +1,30 @@
+databases:
+  - name: salescast-db
+    databaseName: sales_forecast
+    user: salescast
+    plan: free
+
+services:
+  - type: web
+    name: salescast-ai
+    runtime: python
+    plan: free
+    buildCommand: bash build.sh
+    startCommand: bash start.sh
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: salescast-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: CORS_ORIGINS
+        value: '["*"]'
+      - key: UPLOAD_DIR
+        value: ./uploads
+      - key: MODELS_DIR
+        value: ./trained_models
+      - key: PYTHON_VERSION
+        value: "3.11.0"
+      - key: NODE_VERSION
+        value: "20"
