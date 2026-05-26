@@ -422,7 +422,7 @@ def train_lstm(
 
 
 def train_model(
-    df: pd.DataFrame,
+    df,
     model_type: str,
     date_col: str,
     target_col: str,
@@ -443,7 +443,7 @@ def train_model(
 
 
 def compare_models(
-    df: pd.DataFrame, date_col: str, target_col: str, models: List[str], horizon: int = 30
+    df, date_col: str, target_col: str, models: List[str], horizon: int = 30
 ) -> Dict[str, Any]:
     results = []
     best_rmse = float("inf")
