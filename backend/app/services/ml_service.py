@@ -1,17 +1,8 @@
-import pandas as pd
-import numpy as np
-from typing import Dict, Any, List, Tuple, Optional
 import warnings
 import joblib
 import os
+from typing import Dict, Any, List, Tuple, Optional
 from datetime import datetime, timedelta
-
-from sklearn.linear_model import LinearRegression, Ridge
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.model_selection import TimeSeriesSplit
-from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
-from sklearn.ensemble import IsolationForest
-import xgboost as xgb
 
 warnings.filterwarnings("ignore")
 
@@ -21,7 +12,9 @@ from app.services.data_processor import (
 )
 
 
-def evaluate_predictions(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, float]:
+def evaluate_predictions(y_true, y_pred) -> Dict[str, float]:
+    import numpy as np
+    from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
     mae = float(mean_absolute_error(y_true, y_pred))
     rmse = float(np.sqrt(mean_squared_error(y_true, y_pred)))
     r2 = float(r2_score(y_true, y_pred))
@@ -29,7 +22,8 @@ def evaluate_predictions(y_true: np.ndarray, y_pred: np.ndarray) -> Dict[str, fl
     return {"mae": round(mae, 4), "rmse": round(rmse, 4), "r2": round(r2, 4), "mape": round(mape, 4)}
 
 
-def prepare_ml_data(df: pd.DataFrame, date_col: str, target_col: str) -> Tuple[pd.DataFrame, List[str]]:
+def prepare_ml_data(df, date_col: str, target_col: str) -> Tuple[Any, List[str]]:
+    import pandas as pd
     df = parse_date_column(df.copy(), date_col)
     ts = aggregate_time_series(df, date_col, target_col, freq="D")
     ts = ts.rename(columns={"ds": date_col, "y": target_col})
@@ -41,8 +35,12 @@ def prepare_ml_data(df: pd.DataFrame, date_col: str, target_col: str) -> Tuple[p
 
 
 def train_linear_regression(
-    df: pd.DataFrame, date_col: str, target_col: str, forecast_horizon: int = 30
+    df, date_col: str, target_col: str, forecast_horizon: int = 30
 ) -> Dict[str, Any]:
+    import numpy as np
+    from sklearn.linear_model import Ridge
+    from sklearn.preprocessing import StandardScaler
+
     ts, feature_cols = prepare_ml_data(df, date_col, target_col)
 
     X = ts[feature_cols].values
@@ -87,6 +85,8 @@ def train_linear_regression(
 
 
 def _generate_future_linear(model, scaler, ts, date_col, target_col, feature_cols, horizon):
+    import pandas as pd
+    import numpy as np
     last_date = pd.to_datetime(ts[date_col].max())
     future_dates = [last_date + timedelta(days=i + 1) for i in range(horizon)]
     future_df = pd.DataFrame({date_col: future_dates})
@@ -128,8 +128,10 @@ def _generate_future_linear(model, scaler, ts, date_col, target_col, feature_col
 
 
 def train_xgboost(
-    df: pd.DataFrame, date_col: str, target_col: str, forecast_horizon: int = 30
+    df, date_col: str, target_col: str, forecast_horizon: int = 30
 ) -> Dict[str, Any]:
+    import numpy as np
+    import xgboost as xgb
     ts, feature_cols = prepare_ml_data(df, date_col, target_col)
 
     X = ts[feature_cols].values
@@ -171,6 +173,8 @@ def train_xgboost(
 
 
 def _generate_future_xgb(model, ts, date_col, target_col, feature_cols, horizon):
+    import pandas as pd
+    import numpy as np
     last_date = pd.to_datetime(ts[date_col].max())
     last_values = ts[target_col].tolist()
     predictions = []
@@ -205,10 +209,10 @@ def _generate_future_xgb(model, ts, date_col, target_col, feature_cols, horizon)
 
 
 def train_arima(
-    df: pd.DataFrame, date_col: str, target_col: str, forecast_horizon: int = 30
+    df, date_col: str, target_col: str, forecast_horizon: int = 30
 ) -> Dict[str, Any]:
+    import pandas as pd
     from statsmodels.tsa.arima.model import ARIMA
-    from statsmodels.tsa.stattools import adfuller
 
     ts = aggregate_time_series(df.copy(), date_col, target_col, freq="D")
     ts = ts.rename(columns={"ds": date_col, "y": target_col})
@@ -261,13 +265,14 @@ def train_arima(
 
 
 def train_prophet(
-    df: pd.DataFrame, date_col: str, target_col: str, forecast_horizon: int = 30
+    df, date_col: str, target_col: str, forecast_horizon: int = 30
 ) -> Dict[str, Any]:
     try:
         from prophet import Prophet
     except ImportError:
         raise ValueError("Prophet is not installed in this environment. Use Linear Regression, XGBoost, or ARIMA instead.")
 
+    import pandas as pd
     ts = aggregate_time_series(df.copy(), date_col, target_col, freq="D")
     # aggregate_time_series already returns 'ds' and 'y' columns
     ts["ds"] = pd.to_datetime(ts["ds"])
@@ -328,8 +333,11 @@ def train_prophet(
 
 
 def train_lstm(
-    df: pd.DataFrame, date_col: str, target_col: str, forecast_horizon: int = 30
+    df, date_col: str, target_col: str, forecast_horizon: int = 30
 ) -> Dict[str, Any]:
+    import numpy as np
+    import pandas as pd
+    from sklearn.preprocessing import StandardScaler
     try:
         import tensorflow as tf
         from tensorflow.keras.models import Sequential
@@ -458,7 +466,9 @@ def compare_models(
     return {"results": results, "best_model": best_model or models[0]}
 
 
-def detect_anomalies(df: pd.DataFrame, date_col: str, target_col: str) -> List[Dict[str, Any]]:
+def detect_anomalies(df, date_col: str, target_col: str) -> List[Dict[str, Any]]:
+    import numpy as np
+    from sklearn.ensemble import IsolationForest
     ts = aggregate_time_series(df.copy(), date_col, target_col, freq="D")
     ts = ts.rename(columns={"ds": date_col, "y": target_col})
 
@@ -492,7 +502,8 @@ def detect_anomalies(df: pd.DataFrame, date_col: str, target_col: str) -> List[D
     return anomalies
 
 
-def generate_ai_insights(metrics: Dict[str, Any], df: pd.DataFrame, date_col: str, target_col: str) -> List[str]:
+def generate_ai_insights(metrics: Dict[str, Any], df, date_col: str, target_col: str) -> List[str]:
+    import pandas as pd
     insights = []
 
     ts = aggregate_time_series(df.copy(), date_col, target_col, freq="M")
