@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from contextlib import asynccontextmanager
+import asyncio
 import os
 
 FRONTEND_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "frontend_dist")
@@ -14,12 +15,20 @@ from app.routes import auth, upload, forecast, analytics
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    # Run DB init in background so health check responds immediately
+    asyncio.create_task(_init_db())
+    yield
+
+
+async def _init_db():
     try:
-        await create_tables()
-        await _seed_admin()
+        await asyncio.wait_for(create_tables(), timeout=30)
+        await asyncio.wait_for(_seed_admin(), timeout=30)
+        print("[startup] DB init complete")
+    except asyncio.TimeoutError:
+        print("[startup] DB init timed out — continuing without DB setup")
     except Exception as e:
         print(f"[startup] DB init warning: {e}")
-    yield
 
 
 async def _seed_admin():

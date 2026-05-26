@@ -12,7 +12,13 @@ def _fix_db_url(url: str) -> str:
     return url
 
 
-engine = create_async_engine(_fix_db_url(settings.DATABASE_URL), echo=False, pool_size=10, max_overflow=20)
+engine = create_async_engine(
+    _fix_db_url(settings.DATABASE_URL),
+    echo=False,
+    pool_size=5,
+    max_overflow=10,
+    connect_args={"timeout": 10},
+)
 AsyncSessionLocal = async_sessionmaker(engine, class_=AsyncSession, expire_on_commit=False)
 
 
