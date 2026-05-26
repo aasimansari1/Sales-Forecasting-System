@@ -16,6 +16,14 @@
     <img src="https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white&style=flat-square" />
     <img src="https://img.shields.io/badge/TailwindCSS-3-06B6D4?logo=tailwindcss&logoColor=white&style=flat-square" />
   </p>
+
+  <p>
+    <a href="https://dose-linda-earliest-leon.trycloudflare.com" target="_blank">
+      <img src="https://img.shields.io/badge/Live%20Demo-Visit%20App-4F46E5?style=for-the-badge&logo=googlechrome&logoColor=white" />
+    </a>
+  </p>
+
+  <p><strong>Demo credentials:</strong> <code>admin@salesforecast.ai</code> / <code>admin123</code></p>
 </div>
 
 ---
