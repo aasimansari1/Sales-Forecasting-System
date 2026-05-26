@@ -14,8 +14,11 @@ from app.routes import auth, upload, forecast, analytics
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    await create_tables()
-    await _seed_admin()
+    try:
+        await create_tables()
+        await _seed_admin()
+    except Exception as e:
+        print(f"[startup] DB init warning: {e}")
     yield
 
 

@@ -11,6 +11,7 @@ services:
     plan: free
     buildCommand: bash build.sh
     startCommand: bash start.sh
+    healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
         fromDatabase:
