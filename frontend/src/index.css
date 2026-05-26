@@ -1,0 +1,44 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-surface text-slate-100 font-sans antialiased;
+  }
+  ::-webkit-scrollbar { @apply w-1.5; }
+  ::-webkit-scrollbar-track { @apply bg-surface; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-600 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-500; }
+}
+
+@layer components {
+  .card {
+    @apply bg-surface-card rounded-xl border border-surface-border p-6;
+  }
+  .btn-primary {
+    @apply bg-brand-600 hover:bg-brand-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  .btn-secondary {
+    @apply bg-surface-hover hover:bg-slate-600 text-slate-200 font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2;
+  }
+  .btn-danger {
+    @apply bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg transition-colors duration-200 flex items-center gap-2;
+  }
+  .input {
+    @apply bg-surface border border-surface-border rounded-lg px-3 py-2 text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-brand-500 focus:border-transparent w-full transition-all;
+  }
+  .select {
+    @apply bg-surface border border-surface-border rounded-lg px-3 py-2 text-slate-100 focus:outline-none focus:ring-2 focus:ring-brand-500 w-full;
+  }
+  .badge {
+    @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .badge-success { @apply badge bg-green-900/50 text-green-400; }
+  .badge-warning { @apply badge bg-yellow-900/50 text-yellow-400; }
+  .badge-error { @apply badge bg-red-900/50 text-red-400; }
+  .badge-info { @apply badge bg-blue-900/50 text-blue-400; }
+  .metric-card {
+    @apply card flex flex-col gap-1 hover:border-brand-500/50 transition-colors duration-200;
+  }
+}
