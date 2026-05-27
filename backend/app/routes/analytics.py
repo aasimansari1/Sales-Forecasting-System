@@ -7,6 +7,7 @@ from app.database import get_db
 from app.models.user import User
 from app.models.sales import Dataset
 from app.utils.auth import get_current_user
+from app.utils.dataset import load_dataset_df
 from app.services.analytics_service import (
     compute_dashboard_metrics, compute_inventory_recommendations,
     customer_behavior_analysis, seasonal_analysis,
@@ -19,9 +20,7 @@ router = APIRouter(prefix="/api/analytics", tags=["analytics"])
 
 def _load_df(dataset: Dataset) -> pd.DataFrame:
     try:
-        if dataset.file_path.endswith((".xlsx", ".xls")):
-            return pd.read_excel(dataset.file_path)
-        return pd.read_csv(dataset.file_path)
+        return load_dataset_df(dataset)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Could not read dataset: {str(e)}")
 

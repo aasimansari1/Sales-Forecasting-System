@@ -14,12 +14,13 @@ from app.schemas.forecast import (
     ModelCompareRequest, ModelCompareResponse, ForecastPoint,
 )
 from app.utils.auth import get_current_user
+from app.utils.dataset import load_dataset_df
 from app.services.ml_service import train_model, compare_models, generate_ai_insights
 
 router = APIRouter(prefix="/api/forecast", tags=["forecast"])
 
 
-async def _run_forecast(job_id: int, file_path: str, request: ForecastRequest):
+async def _run_forecast(job_id: int, dataset_id: int, request: ForecastRequest):
     from app.database import AsyncSessionLocal
     async with AsyncSessionLocal() as db:
         result = await db.execute(select(ForecastJob).where(ForecastJob.id == job_id))
@@ -32,7 +33,11 @@ async def _run_forecast(job_id: int, file_path: str, request: ForecastRequest):
         await db.commit()
 
         try:
-            df = pd.read_csv(file_path)
+            ds_result = await db.execute(select(Dataset).where(Dataset.id == dataset_id))
+            dataset = ds_result.scalar_one_or_none()
+            if not dataset:
+                raise ValueError("Dataset not found")
+            df = load_dataset_df(dataset)
             result_data = await asyncio.get_event_loop().run_in_executor(
                 None, train_model, df, request.model_type, request.date_column,
                 request.target_column, request.forecast_horizon, request.config
@@ -95,7 +100,7 @@ async def create_forecast(
     await db.commit()
     await db.refresh(job)
 
-    background_tasks.add_task(_run_forecast, job.id, dataset.file_path, request)
+    background_tasks.add_task(_run_forecast, job.id, dataset.id, request)
 
     return ForecastJobResponse.model_validate(job)
 
@@ -143,7 +148,7 @@ async def get_forecast_result(
             ds_result = await db.execute(select(Dataset).where(Dataset.id == job.dataset_id))
             dataset = ds_result.scalar_one_or_none()
             if dataset:
-                df = pd.read_csv(dataset.file_path)
+                df = load_dataset_df(dataset)
                 insights = generate_ai_insights(job.metrics, df, job.date_column, job.target_column)
         except Exception:
             insights = ["Forecast completed successfully."]
@@ -169,7 +174,7 @@ async def compare_forecast_models(
         raise HTTPException(status_code=404, detail="Dataset not found")
 
     try:
-        df = pd.read_csv(dataset.file_path)
+        df = load_dataset_df(dataset)
         result = await asyncio.get_event_loop().run_in_executor(
             None, compare_models, df, request.date_column, request.target_column, request.models, 30
         )

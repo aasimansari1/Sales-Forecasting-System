@@ -10,6 +10,7 @@ class Dataset(Base):
     name = Column(String(255), nullable=False)
     filename = Column(String(255), nullable=False)
     file_path = Column(String(500), nullable=False)
+    file_content = Column(Text, nullable=True)
     row_count = Column(Integer, default=0)
     column_count = Column(Integer, default=0)
     date_range_start = Column(Date, nullable=True)

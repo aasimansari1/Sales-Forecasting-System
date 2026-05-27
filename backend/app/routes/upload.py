@@ -1,3 +1,4 @@
+import io
 import os
 import uuid
 import pandas as pd
@@ -11,6 +12,7 @@ from app.models.user import User
 from app.models.sales import Dataset
 from app.schemas.sales import DatasetResponse
 from app.utils.auth import get_current_user
+from app.utils.dataset import load_dataset_df
 from app.config import settings
 from app.services.data_processor import detect_column_types, clean_and_preprocess, get_dataset_summary
 
@@ -34,15 +36,16 @@ async def upload_csv(
     unique_name = f"{uuid.uuid4().hex}.{ext}"
     file_path = os.path.join(settings.UPLOAD_DIR, unique_name)
 
+    content = await file.read()
+
     async with aiofiles.open(file_path, "wb") as f:
-        content = await file.read()
         await f.write(content)
 
     try:
         if ext == "csv":
-            df = pd.read_csv(file_path, encoding="utf-8", on_bad_lines="skip")
+            df = pd.read_csv(io.BytesIO(content), encoding="utf-8", on_bad_lines="skip")
         else:
-            df = pd.read_excel(file_path)
+            df = pd.read_excel(io.BytesIO(content))
     except Exception as e:
         os.remove(file_path)
         raise HTTPException(status_code=422, detail=f"Could not parse file: {str(e)}")
@@ -60,10 +63,19 @@ async def upload_csv(
         except Exception:
             pass
 
+    # Store CSV content in DB for persistence across redeploys
+    stored_content = None
+    if ext == "csv":
+        try:
+            stored_content = content.decode("utf-8", errors="replace")
+        except Exception:
+            pass
+
     dataset = Dataset(
         name=name,
         filename=file.filename,
         file_path=file_path,
+        file_content=stored_content,
         row_count=len(df),
         column_count=len(df.columns),
         date_range_start=date_start,
@@ -113,9 +125,9 @@ async def get_dataset_summary_route(
         raise HTTPException(status_code=404, detail="Dataset not found")
 
     try:
-        df = pd.read_csv(dataset.file_path)
-    except Exception:
-        raise HTTPException(status_code=500, detail="Could not read dataset file")
+        df = load_dataset_df(dataset)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
     col_info = dataset.columns_info or {}
     col_types = col_info.get("types", {})
