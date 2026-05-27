@@ -9,7 +9,7 @@ import toast from 'react-hot-toast'
 export default function Login() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ email: 'admin@salesforecast.ai', password: 'admin123' })
+  const [form, setForm] = useState({ email: '', password: '' })
   const [loading, setLoading] = useState(false)
   const [showPw, setShowPw] = useState(false)
   const [isRegister, setIsRegister] = useState(false)
@@ -89,13 +89,6 @@ export default function Login() {
             </button>
           </div>
 
-          {!isRegister && (
-            <div className="mt-4 p-3 rounded-lg bg-brand-900/30 border border-brand-500/20">
-              <p className="text-xs text-slate-400 text-center">
-                Demo credentials: <span className="text-brand-400 font-mono">admin@salesforecast.ai</span> / <span className="text-brand-400 font-mono">admin123</span>
-              </p>
-            </div>
-          )}
         </div>
       </div>
     </div>
