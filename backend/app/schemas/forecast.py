@@ -59,4 +59,4 @@ class ModelCompareRequest(BaseModel):
 class ModelCompareResponse(BaseModel):
     results: List[Dict[str, Any]]
     best_model: str
-    comparison_chart: Optional[Dict[str, Any]]
+    comparison_chart: Optional[Dict[str, Any]] = None
