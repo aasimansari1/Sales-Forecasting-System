@@ -17,21 +17,17 @@ from app.routes import auth, upload, forecast, analytics
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Run DB init in background so health check responds immediately
-    asyncio.create_task(_init_db())
-    yield
-
-
-async def _init_db():
+    # Run DB init synchronously so data is ready before the first request
     try:
         await asyncio.wait_for(create_tables(), timeout=30)
         await asyncio.wait_for(_seed_admin(), timeout=30)
         await asyncio.wait_for(_seed_demo_data(), timeout=60)
         print("[startup] DB init complete")
     except asyncio.TimeoutError:
-        print("[startup] DB init timed out — continuing without DB setup")
+        print("[startup] DB init timed out — continuing anyway")
     except Exception as e:
         print(f"[startup] DB init warning: {e}")
+    yield
 
 
 async def _seed_admin():
