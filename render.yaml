@@ -1,9 +1,3 @@
-databases:
-  - name: salescast-db
-    databaseName: sales_forecast
-    user: salescast
-    plan: free
-
 services:
   - type: web
     name: salescast-ai
@@ -14,9 +8,7 @@ services:
     healthCheckPath: /health
     envVars:
       - key: DATABASE_URL
-        fromDatabase:
-          name: salescast-db
-          property: connectionString
+        value: sqlite+aiosqlite:///./sales_forecast.db
       - key: SECRET_KEY
         generateValue: true
       - key: CORS_ORIGINS

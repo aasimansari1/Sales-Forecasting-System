@@ -17,12 +17,17 @@ def _fix_db_url(url: str) -> str:
 def _get_engine():
     global _engine, _session_factory
     if _engine is None:
+        is_sqlite = settings.DATABASE_URL.startswith("sqlite")
+        engine_kwargs = {"echo": False}
+        if is_sqlite:
+            engine_kwargs["connect_args"] = {"check_same_thread": False}
+        else:
+            engine_kwargs["pool_size"] = 5
+            engine_kwargs["max_overflow"] = 10
+            engine_kwargs["connect_args"] = {"timeout": 10}
         _engine = create_async_engine(
             _fix_db_url(settings.DATABASE_URL),
-            echo=False,
-            pool_size=5,
-            max_overflow=10,
-            connect_args={"timeout": 10},
+            **engine_kwargs,
         )
         _session_factory = async_sessionmaker(_engine, class_=AsyncSession, expire_on_commit=False)
     return _engine

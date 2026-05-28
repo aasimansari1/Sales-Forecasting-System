@@ -4,7 +4,7 @@ import os
 
 
 class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:password@localhost:5432/sales_forecast"
+    DATABASE_URL: str = "sqlite+aiosqlite:///./sales_forecast.db"
     SECRET_KEY: str = "changeme-super-secret-key-32chars"
     ALGORITHM: str = "HS256"
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 1440
