@@ -1,5 +1,5 @@
 <div align="center">
-  <img src="docs/screenshots/login.png" alt="SalesCast AI" width="480" />
+  <img src="docs/screenshots/dashboard.png" alt="SalesCast AI Dashboard" width="720" />
 
   <h1>SalesCast AI — Sales Forecasting System</h1>
 
@@ -23,7 +23,6 @@
     </a>
   </p>
 
-  <p><strong>Demo credentials:</strong> <code>admin@salesforecast.ai</code> / <code>admin123</code></p>
 </div>
 
 ---
@@ -157,15 +156,6 @@ Upload the CSV via the **Data Upload** page to start forecasting.
 
 ---
 
-## Default Credentials
-
-| Field | Value |
-|---|---|
-| Email | `admin@salesforecast.ai` |
-| Password | `admin123` |
-
----
-
 ## Expected CSV Format
 
 | Column | Description |
@@ -199,7 +189,7 @@ sales-forecasting/
 │   ├── src/
 │   │   ├── pages/               # Dashboard, Forecast, Analytics, Inventory, Customers, Reports
 │   │   ├── components/          # Sidebar, Charts, MetricCard, FileUpload
-│   │   ├── context/             # AuthContext (JWT + user state)
+│   │   ├── context/             # AuthContext (guest user — no login required)
 │   │   └── services/            # Axios API client
 │   ├── vite.config.js
 │   └── Dockerfile
