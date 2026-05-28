@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import { Toaster } from 'react-hot-toast'
 import App from './App'
+import ErrorBoundary from './components/Common/ErrorBoundary'
 import './index.css'
 
 const queryClient = new QueryClient({
@@ -17,9 +18,10 @@ const queryClient = new QueryClient({
 
 ReactDOM.createRoot(document.getElementById('root')).render(
   <React.StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <App />
-      <Toaster
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <App />
+        <Toaster
         position="top-right"
         toastOptions={{
           style: { background: '#1e293b', color: '#f1f5f9', border: '1px solid #334155' },
@@ -27,6 +29,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           error: { iconTheme: { primary: '#ef4444', secondary: '#1e293b' } },
         }}
       />
-    </QueryClientProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   </React.StrictMode>
 )
